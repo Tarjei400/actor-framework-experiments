@@ -1,0 +1,24 @@
+ [build_requires]
+ protoc_installer/3.9.1@bincrafters/stable
+
+ [requires]
+ gtest/1.10.0
+ di/1.2.0
+ glfw/3.3.2
+ glad/0.1.34
+ nlohmann_json/3.9.1
+ caf/0.17.6@bincrafters/stable
+ ppconsul/0.2.1@demo/testing
+ prometheus-cpp/0.11.0@demo/testing
+
+ [options]
+ gtest:shared=True
+ di:with_extensions=True
+
+ [imports]
+ bin, *.dll -> ./bin # Copies all dll files from packages bin folder to my "bin" folder
+ lib, *.dylib* -> ./bin # Copies all dylib files from packages lib folder to my "bin" folder
+ lib, *.so* -> ./bin # Copies all so files from packages lib folder to my "bin" folder
+
+ [generators]
+ cmake
