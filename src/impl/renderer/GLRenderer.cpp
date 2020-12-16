@@ -10,8 +10,9 @@
 GLRenderer::GLRenderer(
         caf::actor_system& system,
         Agent agent,
-        const shared_ptr<IWindow>& window
-) : ActorWrapper<GLRendererActor>(system, window), system(system){
+        const shared_ptr<IWindow>& window,
+        const shared_ptr<IRenderCounter> counter
+) : ActorWrapper<GLRendererActor>(system, window, counter), system(system){
     auto port = system.middleman().publish(actor, 0 );
     auto healthCheckAddress = "docker.for.mac.host.internal:" + std::to_string(port.value());
     agent.registerService(

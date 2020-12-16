@@ -84,6 +84,8 @@ caf::behavior GLRendererActor::make_behavior() {
             //vertexBuffer.clear();
             glfwSwapBuffers(windowHook);
 
+            counter->increment();
+
         }, [this](AddRectAtom, const Rect& rect) {
             vertexBuffer.push_back({rect.bottonRightCorner.x, rect.bottonRightCorner.y, 1 ,0 ,0});
             vertexBuffer.push_back({rect.bottonRightCorner.x, rect.topLeftCorner.y, 1 ,1 ,0});

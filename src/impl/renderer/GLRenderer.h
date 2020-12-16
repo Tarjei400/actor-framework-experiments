@@ -7,6 +7,7 @@
 #define TETRIS_GLRENDERER_H
 #include "../../interfaces/IWindow.h"
 #include "../../interfaces/IActorWrapper.h"
+#include "../../interfaces/IRenderCounter.h"
 #include "./GLRendererActor.h"
 #include "../../../const.h"
 
@@ -20,7 +21,8 @@ public:
     GLRenderer(
         caf::actor_system& system,
         ConsulAgent agent,
-        const shared_ptr<IWindow>& window
+        const shared_ptr<IWindow>& window,
+        const shared_ptr<IRenderCounter> counter
     );
 
     void renderFrame() override;

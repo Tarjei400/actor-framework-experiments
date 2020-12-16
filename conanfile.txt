@@ -10,15 +10,19 @@
  caf/0.17.6@bincrafters/stable
  ppconsul/0.2.1@demo/testing
  prometheus-cpp/0.11.0@demo/testing
+ openssl/1.1.1c
 
  [options]
  gtest:shared=True
+ openssl:shared=True
+
  di:with_extensions=True
 
  [imports]
  bin, *.dll -> ./bin # Copies all dll files from packages bin folder to my "bin" folder
  lib, *.dylib* -> ./bin # Copies all dylib files from packages lib folder to my "bin" folder
  lib, *.so* -> ./bin # Copies all so files from packages lib folder to my "bin" folder
+ lib, *.a* -> ./lib # Copies all so files from packages lib folder to my "lib" folder
 
  [generators]
  cmake

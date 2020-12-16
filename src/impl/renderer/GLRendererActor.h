@@ -9,6 +9,7 @@
 #include <glad/glad.h>
 #include <caf/all.hpp>
 #include "../../interfaces/IWindow.h"
+#include "../../interfaces/IRenderCounter.h"
 #include "../../interfaces/primitives.h"
 
 
@@ -56,6 +57,7 @@ class GLRendererActor : public event_based_actor {
     GLint mvp_location, vpos_location, vcol_location;
 
     shared_ptr<IWindow> window;
+    shared_ptr<IRenderCounter> counter;
 
     vector<Vertex> vertexBuffer{{
     { -0.6f, -0.4f, 1.f, 0.f, 0.f },
@@ -71,8 +73,9 @@ public:
 
     GLRendererActor(
             actor_config& config,
-            const shared_ptr<IWindow>& window
-    ): event_based_actor(config), window(window) {
+            const shared_ptr<IWindow>& window,
+            const shared_ptr<IRenderCounter> counter
+    ): event_based_actor(config), window(window), counter(counter) {
 
     };
 protected:

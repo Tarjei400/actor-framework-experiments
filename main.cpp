@@ -1,5 +1,7 @@
 #include <iostream>
 #include <boost/di.hpp>
+#include <caf/all.hpp>
+#include <caf/io/all.hpp>
 #include <glad/glad.h>
 #include <boost/di/extension/injections/shared_factory.hpp>
 
@@ -7,6 +9,7 @@
 #include "src/interfaces/IBoardController.h"
 #include "src/interfaces/IActorWrapper.h"
 #include "src/interfaces/IRenderer.h"
+#include "src/interfaces/IRenderCounter.h"
 #include "src/interfaces/IWindow.h"
 #include "src/interfaces/IKeyEventListener.h"
 #include "src/interfaces/IWindowLoop.h"
@@ -16,6 +19,7 @@
 #include "src/interfaces/IGameController.h"
 #include "src/impl/game/board/BoardController.h"
 #include "src/impl/renderer/GLRenderer.h"
+#include "src/impl/renderer/RenderCounter.h"
 #include "src/impl/windows/GlfwWindow.h"
 #include "src/impl/windows/GlfwWindowController.h"
 #include "src/impl/GameLoop.h"
@@ -36,12 +40,10 @@
 
 using namespace boost;
 #include <prometheus/counter.h>
+#include <prometheus/histogram.h>
 #include <prometheus/exposer.h>
 #include <prometheus/registry.h>
 
-#include <caf/all.hpp>
-#include <caf/io/all.hpp>
-#include "const.h"
 
 
 //Board actor
@@ -56,7 +58,11 @@ int caf_main(actor_system& system) {
     ConsulAgent agent(consul);
     ConsulKv kv(consul);
 
+    // create an http server running on port 8081 TODO: Add it to di container
+    prometheus::Exposer exposer{"127.0.0.1:8081"};
+
     auto module = di::make_injector(
+            di::bind<prometheus::Registry>().in(di::singleton).to<prometheus::Registry>(),
             di::bind<actor_system>().to(system),
             di::bind<ConsulAgent>().to(agent),
             di::bind<ConsulKv>().to(kv),
@@ -64,6 +70,7 @@ int caf_main(actor_system& system) {
             di::bind<IConfiguration *[]>().to<ConsulConfiguration, EnvConfiguration, JsonConfiguration>(),
             di::bind<IBoardController>().to<BoardController>(),
             di::bind<IRenderer>().in(di::singleton).to<GLRenderer>(),
+            di::bind<IRenderCounter>().in(di::singleton).to<RenderCounter>(),
             di::bind<IWindow>().in(di::singleton).to<GlfwWindow>(),
             di::bind<ILogger *[]>().to<TextLogger>(),
             di::bind<ILogger>().to<LoggerAdapter>(),
@@ -73,34 +80,48 @@ int caf_main(actor_system& system) {
             di::bind<IKeyEventListener *[]>().to<BoardKeyListener, WindowKeyListener, GameKeyListener>(),
             di::bind<IGameController>().in(di::singleton).to<GameController>()
     );
-    using namespace prometheus;
 
-    // create an http server running on port 8080
-    Exposer exposer{"127.0.0.1:8081"};
-
+    auto registry = module.create<std::shared_ptr<prometheus::Registry>>();
+    exposer.RegisterCollectable(registry);
     // create a metrics registry with component=main labels applied to all its
     // metrics
-    auto registry = std::make_shared<Registry>();
 
-    // add a new counter family to the registry (families combine values with the
-    // same name, but distinct label dimensions)
-    auto& counter_family = BuildCounter()
-            .Name("time_running_seconds_total")
-            .Help("How many seconds is this server running?")
-            .Labels({{"label", "value"}})
-            .Register(*registry);
-
-    // add a counter to the metric family
-    auto& second_counter = counter_family.Add(
-            {{"another_label", "value"}, {"yet_another_label", "value"}});
-
-    // ask the exposer to scrape the registry on incoming scrapes
-    exposer.RegisterCollectable(registry);
-
-        // increment the counter by one (second)
-    second_counter.Increment();
-    second_counter.Increment();
-    second_counter.Increment();
+//    auto& histogram_family = BuildHistogram()
+//                              .Name("some_name")
+//                              .Help("Additional description.")
+//                              .Labels({{"key", "value"}})
+//                              .Register(*registry);
+//
+//    auto& counter_family = BuildCounter()
+//            .Name("time_running_seconds_total")
+//            .Help("How many seconds is this server running?")
+//            .Labels({{"label", "value"}})
+//            .Register(*registry);
+//
+//    // add a counter to the metric family
+//    auto& second_counter = counter_family.Add(
+//    {{"another_label", "value"}, {"yet_another_label", "value"}}
+//    );
+//
+//
+//    std::vector<double> buckets{0.0, 100.0, 200.0, 500.0, 1000.0, 2000.0, 9999999.0};
+//    auto& fps_histogram = histogram_family.Add(
+//            {{"fps_label", "value"}}, buckets
+//    );
+//
+//    for (auto i = 0; i < 10000; i++) {
+//        fps_histogram.Observe((double)std::rand()/RAND_MAX*2000);
+//    }
+//
+//    fps_histogram.Collect();
+//
+//    // ask the exposer to scrape the registry on incoming scrapes
+//
+//
+//    // increment the counter by one (second)
+//    second_counter.Increment();
+//    second_counter.Increment();
+//    second_counter.Increment();
 
     auto services = agent.services();
 

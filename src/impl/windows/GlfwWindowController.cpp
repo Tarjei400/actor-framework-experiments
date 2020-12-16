@@ -32,7 +32,7 @@ void GlfwWindowController::start() {
         }
         //glfwSwapBuffers(windowHook);
         glfwPollEvents();
-        usleep(1000000);
+        usleep(100000);
     }
 
 }

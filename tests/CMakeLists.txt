@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(TetrisTests CXX)
 
+
 include(GoogleTest)
 link_directories(${CONAN_LIB_DIRS})
 
